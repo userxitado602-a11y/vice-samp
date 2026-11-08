@@ -21,11 +21,16 @@ kaizer (North Point Mall floor texture fix)
 #define SPAWN_FILE "spawn.txt"
 #define DIALOG_AYUDA 1
 #define DIALOG_AYUDA_INFO 2
+#define DIALOG_VEHICULOS 3
+#define DIALOG_GPS 4
+#define DIALOG_STATS 5
+#define DIALOG_REPORTAR 6
 
 new Float:gSpawnX = VC_SPAWN_X,
 	Float:gSpawnY = VC_SPAWN_Y,
 	Float:gSpawnZ = VC_SPAWN_Z,
 	Float:gSpawnA = 0.0;
+new gLastReportAt[MAX_PLAYERS];
 
 LoadSpawn()
 {
@@ -112,6 +117,7 @@ public OnGameModeInit()
 
 public OnPlayerConnect(playerid)
 {
+	gLastReportAt[playerid] = 0;
 	SendClientMessage(playerid, 0x33CCFFFF, "Bienvenido a Vice City. Escribe /ayuda para ver los comandos.");
 	return 1;
 }
@@ -151,8 +157,14 @@ CMD:coche(playerid, params[])
 }
 ShowAyudaMenu(playerid)
 {
-	ShowPlayerDialog(playerid, DIALOG_AYUDA, DIALOG_STYLE_LIST, "Ayuda - Vice City",
-		"Comandos generales\nCoches y jetpack\nHora y clima\nComandos de admin", "Ver", "Cerrar");
+	new menu[512];
+	format(menu, sizeof menu, "{00D9FF}SECCION\t{B0B0B0}QUE ENCONTRARAS\n");
+	strcat(menu, "{FFFFFF}Primeros pasos\t{B0B0B0}Como empezar en Vice City\n", sizeof menu);
+	strcat(menu, "{F1C40F}Vehiculos y movimiento\t{B0B0B0}Coches y jetpack\n", sizeof menu);
+	strcat(menu, "{2ECC71}Hora y clima\t{B0B0B0}Personaliza el mundo\n", sizeof menu);
+	strcat(menu, "{FF6B6B}Herramientas\t{B0B0B0}Admin y seleccion de objetos", sizeof menu);
+	ShowPlayerDialog(playerid, DIALOG_AYUDA, DIALOG_STYLE_TABLIST_HEADERS,
+		"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}CENTRO DE AYUDA", menu, "Abrir", "Salir");
 	return 1;
 }
 
@@ -161,20 +173,107 @@ CMD:ayuda(playerid, params[])
 	return ShowAyudaMenu(playerid);
 }
 
+ShowVehiculosMenu(playerid)
+{
+	new menu[512];
+	format(menu, sizeof menu, "{00D9FF}VEHICULO\t{B0B0B0}CLASE\t{B0B0B0}ESTILO\n");
+	strcat(menu, "{FFFFFF}Infernus\t{F1C40F}Deportivo\t{B0B0B0}Alta velocidad\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Cheetah\t{F1C40F}Deportivo\t{B0B0B0}Estilo clasico\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Banshee\t{F1C40F}Deportivo\t{B0B0B0}Aceleracion\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Turismo\t{F1C40F}Deportivo\t{B0B0B0}Alto rendimiento\n", sizeof menu);
+	strcat(menu, "{FFFFFF}PCJ-600\t{2ECC71}Motocicleta\t{B0B0B0}Agil y rapida\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Sanchez\t{2ECC71}Motocicleta\t{B0B0B0}Todo terreno", sizeof menu);
+	ShowPlayerDialog(playerid, DIALOG_VEHICULOS, DIALOG_STYLE_TABLIST_HEADERS,
+		"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}CONCESIONARIO", menu, "Elegir", "Cerrar");
+	return 1;
+}
+
+CMD:vehiculos(playerid, params[])
+{
+	return ShowVehiculosMenu(playerid);
+}
+
+ShowGPSMenu(playerid)
+{
+	new menu[512];
+	format(menu, sizeof menu, "{00D9FF}DESTINO\t{B0B0B0}ZONA\n");
+	strcat(menu, "{FFFFFF}Aeropuerto\t{B0B0B0}Terminal principal\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Downtown\t{B0B0B0}Centro de la ciudad\n", sizeof menu);
+	strcat(menu, "{FFFFFF}Estadio\t{B0B0B0}Distrito norte\n", sizeof menu);
+	strcat(menu, "{FFFFFF}North Point Mall\t{B0B0B0}Centro comercial\n", sizeof menu);
+	strcat(menu, "{FFFFFF}North Beach\t{B0B0B0}Costa norte", sizeof menu);
+	ShowPlayerDialog(playerid, DIALOG_GPS, DIALOG_STYLE_TABLIST_HEADERS,
+		"{00D9FF}VICE CITY {FFFFFF}| {2ECC71}GPS", menu, "Marcar", "Cerrar");
+	return 1;
+}
+
+CMD:gps(playerid, params[])
+{
+	return ShowGPSMenu(playerid);
+}
+
+CMD:stats(playerid, params[])
+{
+	new playerName[MAX_PLAYER_NAME], info[512];
+	GetPlayerName(playerid, playerName, sizeof playerName);
+	format(info, sizeof info, "{00D9FF}RESUMEN DEL JUGADOR\n{777777}________________________________________\n\n{FFFFFF}Nombre: {F1C40F}%s\n{FFFFFF}ID: {F1C40F}%d\n{FFFFFF}Puntuacion: {2ECC71}%d\n{FFFFFF}Dinero: {2ECC71}$%d\n{FFFFFF}Ping: {00D9FF}%d ms", playerName, playerid, GetPlayerScore(playerid), GetPlayerMoney(playerid), GetPlayerPing(playerid));
+	ShowPlayerDialog(playerid, DIALOG_STATS, DIALOG_STYLE_MSGBOX,
+		"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}MI PERFIL", info, "Listo", "");
+	return 1;
+}
+
+CMD:reportar(playerid, params[])
+{
+	ShowPlayerDialog(playerid, DIALOG_REPORTAR, DIALOG_STYLE_INPUT,
+		"{00D9FF}VICE CITY {FFFFFF}| {FF6B6B}REPORTAR",
+		"{FFFFFF}Describe brevemente el problema.\n{B0B0B0}El reporte se enviara al staff conectado.\n{AAAAAA}Minimo 5 caracteres.",
+		"Enviar", "Cancelar");
+	return 1;
+}
+
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
 	if(dialogid == DIALOG_AYUDA)
 	{
 		if(!response) return 1;
-		new info[256];
+		new info[1024];
 		switch(listitem)
 		{
-			case 0: format(info, sizeof info, "{FFFFFF}/ayuda {AAAAAA}- Abre este menu\n{FFFFFF}/gotovc {AAAAAA}- Te lleva al centro de Vice City");
-			case 1: format(info, sizeof info, "{FFFFFF}/coche {AAAAAA}- Crea un Infernus delante de ti\n{FFFFFF}/jp {AAAAAA}- Jetpack");
-			case 2: format(info, sizeof info, "{FFFFFF}/day {AAAAAA}- Pone el dia\n{FFFFFF}/night {AAAAAA}- Pone la noche\n{FFFFFF}/clima [0-45] {AAAAAA}- Cambia el clima\n{FFFFFF}/hora [0-23] {AAAAAA}- Cambia la hora");
-			case 3: format(info, sizeof info, "{FFFFFF}/setspawn {AAAAAA}- Establece el spawn en tu posicion actual\n\n{FFFF00}Solo admin RCON. Entra con /rcon login <clave>");
+		case 0:
+		{
+			format(info, sizeof info, "{00D9FF}BIENVENIDO A VICE CITY\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}Explora la ciudad a tu ritmo y usa el chat para\n", sizeof info);
+			strcat(info, "{FFFFFF}escribir los comandos. No olvides la barra / .\n\n", sizeof info);
+			strcat(info, "{F1C40F}/ayuda {777777}- {B0B0B0}Abre este centro de ayuda\n", sizeof info);
+			strcat(info, "{F1C40F}/gotovc {777777}- {B0B0B0}Te lleva al centro de Vice City", sizeof info);
 		}
-		ShowPlayerDialog(playerid, DIALOG_AYUDA_INFO, DIALOG_STYLE_MSGBOX, "Ayuda - Vice City", info, "Volver", "Cerrar");
+		case 1:
+		{
+			format(info, sizeof info, "{F1C40F}VEHICULOS Y MOVIMIENTO\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/coche {777777}- {B0B0B0}Crea un Infernus y te sube en el\n", sizeof info);
+			strcat(info, "{FFFFFF}/jp {777777}- {B0B0B0}Activa el jetpack para volar\n\n", sizeof info);
+			strcat(info, "{AAAAAA}Consejo: usa el jetpack para descubrir el mapa desde el aire.", sizeof info);
+		}
+		case 2:
+		{
+			format(info, sizeof info, "{2ECC71}HORA Y CLIMA\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/day {777777}- {B0B0B0}Cambia la hora a las 12:00\n", sizeof info);
+			strcat(info, "{FFFFFF}/night {777777}- {B0B0B0}Activa la noche\n", sizeof info);
+			strcat(info, "{FFFFFF}/hora [0-23] {777777}- {B0B0B0}Elige la hora del mundo\n", sizeof info);
+			strcat(info, "{FFFFFF}/clima [0-45] {777777}- {B0B0B0}Cambia el clima", sizeof info);
+		}
+		case 3:
+		{
+			format(info, sizeof info, "{FF6B6B}HERRAMIENTAS Y ADMINISTRACION\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/select {777777}- {B0B0B0}Abre la herramienta de seleccion\n", sizeof info);
+			strcat(info, "{FFFFFF}/setspawn {777777}- {B0B0B0}Guarda tu posicion como nuevo spawn\n\n", sizeof info);
+			strcat(info, "{F1C40F}Nota: /setspawn requiere iniciar sesion RCON\n", sizeof info);
+			strcat(info, "{AAAAAA}con /rcon login <clave>.", sizeof info);
+		}
+			default: return 1;
+		}
+		ShowPlayerDialog(playerid, DIALOG_AYUDA_INFO, DIALOG_STYLE_MSGBOX,
+			"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}AYUDA", info, "Volver", "Cerrar");
 		return 1;
 	}
 	if(dialogid == DIALOG_AYUDA_INFO)
@@ -182,7 +281,87 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		if(response) ShowAyudaMenu(playerid);
 		return 1;
 	}
+	if(dialogid == DIALOG_VEHICULOS)
+	{
+		if(!response) return 1;
+		new modelid;
+		switch(listitem)
+		{
+			case 0: modelid = 411; // Infernus
+			case 1: modelid = 415; // Cheetah
+			case 2: modelid = 429; // Banshee
+			case 3: modelid = 451; // Turismo
+			case 4: modelid = 461; // PCJ-600
+			case 5: modelid = 468; // Sanchez
+			default: return 1;
+		}
+		new Float:x, Float:y, Float:z, Float:angle;
+		GetPlayerPos(playerid, x, y, z);
+		GetPlayerFacingAngle(playerid, angle);
+		new vehicleid = CreateVehicle(modelid, x + (4.0 * floatsin(angle, degrees)), y + (4.0 * floatcos(angle, degrees)), z + 0.5, angle, -1, -1, 120);
+		if(vehicleid == INVALID_VEHICLE_ID)
+			return SendClientMessage(playerid, 0xFF6B6BFF, "{FF6B6B}[VEHICULOS] {FFFFFF}No se pudo crear el vehiculo.");
+		PutPlayerInVehicle(playerid, vehicleid, 0);
+		SendClientMessage(playerid, 0x2ECC71FF, "{2ECC71}[VEHICULOS] {FFFFFF}Vehiculo creado. Buen viaje por Vice City.");
+		return 1;
+	}
+	if(dialogid == DIALOG_GPS)
+	{
+		if(!response) return 1;
+		new Float:destX, Float:destY, Float:destZ, destination[32];
+		switch(listitem)
+		{
+			case 0: { destX = 4563.418945; destY = 168.347625; destZ = 15.361562; format(destination, sizeof destination, "Aeropuerto"); }
+			case 1: { destX = 5324.92; destY = 1738.1; destZ = 5.55; format(destination, sizeof destination, "Downtown"); }
+			case 2: { destX = 4914.31; destY = 2381.01; destZ = 10.61; format(destination, sizeof destination, "Estadio"); }
+			case 3: { destX = 6322.24; destY = 2242.94; destZ = 14.15; format(destination, sizeof destination, "North Point Mall"); }
+			case 4: { destX = 6500.65; destY = 1563.4; destZ = 10.4; format(destination, sizeof destination, "North Beach"); }
+			default: return 1;
+		}
+		SetPlayerCheckpoint(playerid, destX, destY, destZ, 5.0);
+		new message[96];
+		format(message, sizeof message, "{2ECC71}[GPS] {FFFFFF}Ruta marcada hacia {F1C40F}%s{FFFFFF}. Sigue el checkpoint.", destination);
+		SendClientMessage(playerid, 0xFFFFFFFF, message);
+		return 1;
+	}
+	if(dialogid == DIALOG_STATS) return 1;
+	if(dialogid == DIALOG_REPORTAR)
+	{
+		if(!response)
+			return SendClientMessage(playerid, 0xAAAAAAFF, "{AAAAAA}[REPORTE] {FFFFFF}Envio cancelado.");
+		if(strlen(inputtext) < 5)
+			return SendClientMessage(playerid, 0xFF6B6BFF, "{FF6B6B}[REPORTE] {FFFFFF}Escribe al menos 5 caracteres y vuelve a intentarlo.");
+		new currentTick = GetTickCount();
+		if(gLastReportAt[playerid] != 0 && currentTick - gLastReportAt[playerid] < 60000)
+			return SendClientMessage(playerid, 0xF1C40FFF, "{F1C40F}[REPORTE] {FFFFFF}Espera un minuto antes de enviar otro reporte.");
+		gLastReportAt[playerid] = currentTick;
+		new playerName[MAX_PLAYER_NAME], staffMessage[192];
+		GetPlayerName(playerid, playerName, sizeof playerName);
+		format(staffMessage, sizeof staffMessage, "{FF6B6B}[REPORTE] {FFFFFF}%s (ID %d): {E8ECF1}%s", playerName, playerid, inputtext);
+		new staffCount = 0;
+		for(new i = 0; i < MAX_PLAYERS; i++)
+		{
+			if(IsPlayerConnected(i) && IsPlayerAdmin(i))
+			{
+				SendClientMessage(i, 0xFFFFFFFF, staffMessage);
+				staffCount++;
+			}
+		}
+		printf("[REPORTE] %s (ID %d): %s", playerName, playerid, inputtext);
+		if(staffCount > 0)
+			SendClientMessage(playerid, 0x2ECC71FF, "{2ECC71}[REPORTE] {FFFFFF}Enviado al staff. Gracias por ayudar a mejorar el servidor.");
+		else
+			SendClientMessage(playerid, 0xF1C40FFF, "{F1C40F}[REPORTE] {FFFFFF}No hay staff conectado; el reporte quedo en el log del servidor.");
+		return 1;
+	}
 	return 0;
+}
+
+public OnPlayerEnterCheckpoint(playerid)
+{
+	DisablePlayerCheckpoint(playerid);
+	SendClientMessage(playerid, 0x2ECC71FF, "{2ECC71}[GPS] {FFFFFF}Has llegado a tu destino.");
+	return 1;
 }
 
 CMD:setspawn(playerid, params[])
