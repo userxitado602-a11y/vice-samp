@@ -151,8 +151,14 @@ CMD:coche(playerid, params[])
 }
 ShowAyudaMenu(playerid)
 {
-	ShowPlayerDialog(playerid, DIALOG_AYUDA, DIALOG_STYLE_LIST, "Ayuda - Vice City",
-		"Comandos generales\nCoches y jetpack\nHora y clima\nComandos de admin", "Ver", "Cerrar");
+	new menu[512];
+	format(menu, sizeof menu, "{00D9FF}SECCION\t{B0B0B0}QUE ENCONTRARAS\n");
+	strcat(menu, "{FFFFFF}Primeros pasos\t{B0B0B0}Como empezar en Vice City\n", sizeof menu);
+	strcat(menu, "{F1C40F}Vehiculos y movimiento\t{B0B0B0}Coches y jetpack\n", sizeof menu);
+	strcat(menu, "{2ECC71}Hora y clima\t{B0B0B0}Personaliza el mundo\n", sizeof menu);
+	strcat(menu, "{FF6B6B}Herramientas\t{B0B0B0}Admin y seleccion de objetos", sizeof menu);
+	ShowPlayerDialog(playerid, DIALOG_AYUDA, DIALOG_STYLE_TABLIST_HEADERS,
+		"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}CENTRO DE AYUDA", menu, "Abrir", "Salir");
 	return 1;
 }
 
@@ -166,15 +172,44 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 	if(dialogid == DIALOG_AYUDA)
 	{
 		if(!response) return 1;
-		new info[256];
+		new info[1024];
 		switch(listitem)
 		{
-			case 0: format(info, sizeof info, "{FFFFFF}/ayuda {AAAAAA}- Abre este menu\n{FFFFFF}/gotovc {AAAAAA}- Te lleva al centro de Vice City");
-			case 1: format(info, sizeof info, "{FFFFFF}/coche {AAAAAA}- Crea un Infernus delante de ti\n{FFFFFF}/jp {AAAAAA}- Jetpack");
-			case 2: format(info, sizeof info, "{FFFFFF}/day {AAAAAA}- Pone el dia\n{FFFFFF}/night {AAAAAA}- Pone la noche\n{FFFFFF}/clima [0-45] {AAAAAA}- Cambia el clima\n{FFFFFF}/hora [0-23] {AAAAAA}- Cambia la hora");
-			case 3: format(info, sizeof info, "{FFFFFF}/setspawn {AAAAAA}- Establece el spawn en tu posicion actual\n\n{FFFF00}Solo admin RCON. Entra con /rcon login <clave>");
+		case 0:
+		{
+			format(info, sizeof info, "{00D9FF}BIENVENIDO A VICE CITY\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}Explora la ciudad a tu ritmo y usa el chat para\n", sizeof info);
+			strcat(info, "{FFFFFF}escribir los comandos. No olvides la barra / .\n\n", sizeof info);
+			strcat(info, "{F1C40F}/ayuda {777777}- {B0B0B0}Abre este centro de ayuda\n", sizeof info);
+			strcat(info, "{F1C40F}/gotovc {777777}- {B0B0B0}Te lleva al centro de Vice City", sizeof info);
 		}
-		ShowPlayerDialog(playerid, DIALOG_AYUDA_INFO, DIALOG_STYLE_MSGBOX, "Ayuda - Vice City", info, "Volver", "Cerrar");
+		case 1:
+		{
+			format(info, sizeof info, "{F1C40F}VEHICULOS Y MOVIMIENTO\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/coche {777777}- {B0B0B0}Crea un Infernus y te sube en el\n", sizeof info);
+			strcat(info, "{FFFFFF}/jp {777777}- {B0B0B0}Activa el jetpack para volar\n\n", sizeof info);
+			strcat(info, "{AAAAAA}Consejo: usa el jetpack para descubrir el mapa desde el aire.", sizeof info);
+		}
+		case 2:
+		{
+			format(info, sizeof info, "{2ECC71}HORA Y CLIMA\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/day {777777}- {B0B0B0}Cambia la hora a las 12:00\n", sizeof info);
+			strcat(info, "{FFFFFF}/night {777777}- {B0B0B0}Activa la noche\n", sizeof info);
+			strcat(info, "{FFFFFF}/hora [0-23] {777777}- {B0B0B0}Elige la hora del mundo\n", sizeof info);
+			strcat(info, "{FFFFFF}/clima [0-45] {777777}- {B0B0B0}Cambia el clima", sizeof info);
+		}
+		case 3:
+		{
+			format(info, sizeof info, "{FF6B6B}HERRAMIENTAS Y ADMINISTRACION\n{777777}________________________________________________\n\n");
+			strcat(info, "{FFFFFF}/select {777777}- {B0B0B0}Abre la herramienta de seleccion\n", sizeof info);
+			strcat(info, "{FFFFFF}/setspawn {777777}- {B0B0B0}Guarda tu posicion como nuevo spawn\n\n", sizeof info);
+			strcat(info, "{F1C40F}Nota: /setspawn requiere iniciar sesion RCON\n", sizeof info);
+			strcat(info, "{AAAAAA}con /rcon login <clave>.", sizeof info);
+		}
+			default: return 1;
+		}
+		ShowPlayerDialog(playerid, DIALOG_AYUDA_INFO, DIALOG_STYLE_MSGBOX,
+			"{00D9FF}VICE CITY {FFFFFF}| {F1C40F}AYUDA", info, "Volver", "Cerrar");
 		return 1;
 	}
 	if(dialogid == DIALOG_AYUDA_INFO)
